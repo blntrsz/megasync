@@ -1,0 +1,12 @@
+{
+  "name": "analytic-indexer",
+  "scripts": {
+    "dev": "node-pg-migrate up && tsx watch src/index.ts",
+    "migrate": "node-pg-migrate"
+  },
+  "dependencies": {
+    "config": "^3.3.12",
+    "node-pg-migrate": "^7.9.1",
+    "tsx": "^4.19.3"
+  }
+}

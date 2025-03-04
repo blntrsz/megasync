@@ -1,0 +1,46 @@
+version: "3.3"
+
+services:
+  electric:
+    image: electricsql/electric
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/postgres?sslmode=disable
+    ports:
+      - 3000:3000
+    depends_on:
+      - postgres
+  postgres:
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - 5001:5432
+    command:
+      - -c
+      - listen_addresses=*
+      - -c
+      - wal_level=logical
+  vector:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - 5002:5432
+  timescale:
+    image: timescale/timescaledb:latest-pg16
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - 5003:5432
+  s3:
+    image: minio/minio
+    ports:
+      - 9000:9000
+      - 9001:9001
+    command: server /data
