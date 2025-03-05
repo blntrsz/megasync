@@ -2,13 +2,11 @@
   "name": "analytic-indexer",
   "type": "module",
   "scripts": {
-    "dev": "node-pg-migrate up && tsx watch src/index.ts",
-    "migrate": "node-pg-migrate"
+    "dev": "tsx watch src/index.ts"
   },
   "dependencies": {
     "config": "^3.3.12",
     "minio": "^8.0.4",
-    "node-pg-migrate": "^7.9.1",
     "tsx": "^4.19.3"
   }
 }

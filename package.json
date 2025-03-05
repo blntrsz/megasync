@@ -2,7 +2,7 @@
   "name": "megasync",
   "version": "1.0.0",
   "scripts": {
-    "dev": "pnpm -r dev",
+    "dev": "pnpm --parallel dev",
     "migrate:up": "pnpm -r migrate up",
     "migrate:down": "pnpm -r migrate down",
     "clean": "rm -rf */*/handle && rm -rf */*/offset"
