@@ -13,16 +13,6 @@ CREATE TABLE comment_service.comments (
     vector VECTOR(4096) NOT NULL
 );
 
-CREATE SCHEMA relationships;
-CREATE TABLE relationships.relationships (
-    id SERIAL PRIMARY KEY,
-    vector VECTOR(4096) NOT NULL
-);
-CREATE TABLE relationships.domain_objects (
-    id SERIAL PRIMARY KEY,
-    vector VECTOR(4096) NOT NULL
-);
-
 -- Down Migration
 DROP TABLE IF EXISTS comment_service.comments;
 DROP SCHEMA IF EXISTS comment_service;

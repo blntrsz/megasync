@@ -5,6 +5,7 @@
     "dev": "tsx watch src/index.ts"
   },
   "dependencies": {
+    "core": "workspace:*",
     "config": "^3.3.12",
     "minio": "^8.0.4",
     "tsx": "^4.19.3"

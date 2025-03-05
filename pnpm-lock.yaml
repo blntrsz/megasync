@@ -33,6 +33,9 @@ importers:
       config:
         specifier: ^3.3.12
         version: 3.3.12
+      core:
+        specifier: workspace:*
+        version: link:../core
       node-pg-migrate:
         specifier: ^7.9.1
         version: 7.9.1(pg@8.13.3)
@@ -48,6 +51,9 @@ importers:
       config:
         specifier: ^3.3.12
         version: 3.3.12
+      core:
+        specifier: workspace:*
+        version: link:../core
       minio:
         specifier: ^8.0.4
         version: 8.0.4
@@ -86,11 +92,16 @@ importers:
         specifier: ^4.19.3
         version: 4.19.3
 
+  packages/core: {}
+
   packages/versoning:
     dependencies:
       config:
         specifier: ^3.3.12
         version: 3.3.12
+      core:
+        specifier: workspace:*
+        version: link:../core
       minio:
         specifier: ^8.0.4
         version: 8.0.4
@@ -100,6 +111,9 @@ importers:
 
   packages/web:
     dependencies:
+      '@electric-sql/experimental':
+        specifier: 0.1.2-beta.3
+        version: 0.1.2-beta.3(@electric-sql/client@1.0.0-beta.4)
       '@electric-sql/pglite':
         specifier: ^0.2.17
         version: 0.2.17
@@ -118,6 +132,9 @@ importers:
       '@react-router/serve':
         specifier: ^7.2.0
         version: 7.2.0(react-router@7.2.0(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(typescript@5.8.2)
+      '@tanstack/react-query':
+        specifier: ^5.67.1
+        version: 5.67.1(react@19.0.0)
       isbot:
         specifier: ^5.1.23
         version: 5.1.23
@@ -320,6 +337,11 @@ packages:
 
   '@electric-sql/client@1.0.0-beta.4':
     resolution: {integrity: sha512-UKiS0WJHVL91mvcZPPXuUGE9vSFB8zjNuYESUUNKqO+jhaebxwI6e8SHx4nHH1P4RD5hotGGvQNErz8ViB9b7Q==}
+
+  '@electric-sql/experimental@0.1.2-beta.3':
+    resolution: {integrity: sha512-6NxfKojMD0jS5LGdbjVRdIVSX1Dk+1srUo1vL8Qh3krEz8Sz3YUqGFB2cb/Uqf6hyhOEOzUg+7TJt9RzaUAbiA==}
+    peerDependencies:
+      '@electric-sql/client': 1.0.0-beta.4
 
   '@electric-sql/pglite-react@0.2.17':
     resolution: {integrity: sha512-TEdV1UAUO50gb/okYcVaiG2dQdox53K2E8jSEl0Wa/97x3Xi238ls7ZB7wgmoqNgy45f/tgYxyztml03EFClng==}
@@ -1106,6 +1128,14 @@ packages:
     resolution: {integrity: sha512-BIKJO+hwdIsN7V6I7SziMZIVHWWMsV/uCQKYEbeiGRDRld+TkqyRRl9+dQ0MCXbhcVr+D9T/qX2E84kT7V281g==}
     peerDependencies:
       vite: ^5.2.0 || ^6
+
+  '@tanstack/query-core@5.67.1':
+    resolution: {integrity: sha512-AkFmuukVejyqVIjEQoFhLb3q+xHl7JG8G9cANWTMe3s8iKzD9j1VBSYXgCjy6vm6xM8cUCR9zP2yqWxY9pTWOA==}
+
+  '@tanstack/react-query@5.67.1':
+    resolution: {integrity: sha512-fH5u4JLwB6A+wLFdi8wWBWAYoJV5deYif2OveJ26ktAWjU499uvVFS1wPWnyEyq5LvZX1MZInvv9QRaIZANRaQ==}
+    peerDependencies:
+      react: ^18 || ^19
 
   '@types/config@3.3.5':
     resolution: {integrity: sha512-itq2HtXQBrNUKwMNZnb9mBRE3T99VYCdl1gjST9rq+9kFaB1iMMGuDeZnP88qid73DnpAMKH9ZolqDpS1Lz7+w==}
@@ -2985,6 +3015,12 @@ snapshots:
     optionalDependencies:
       '@rollup/rollup-darwin-arm64': 4.34.8
 
+  '@electric-sql/experimental@0.1.2-beta.3(@electric-sql/client@1.0.0-beta.4)':
+    dependencies:
+      '@electric-sql/client': 1.0.0-beta.4
+    optionalDependencies:
+      '@rollup/rollup-darwin-arm64': 4.34.8
+
   '@electric-sql/pglite-react@0.2.17(@electric-sql/pglite@0.2.17)(react@19.0.0)':
     dependencies:
       '@electric-sql/pglite': 0.2.17
@@ -3692,6 +3728,13 @@ snapshots:
       lightningcss: 1.29.1
       tailwindcss: 4.0.9
       vite: 6.2.0(@types/node@22.13.5)(jiti@2.4.2)(lightningcss@1.29.1)(tsx@4.19.3)
+
+  '@tanstack/query-core@5.67.1': {}
+
+  '@tanstack/react-query@5.67.1(react@19.0.0)':
+    dependencies:
+      '@tanstack/query-core': 5.67.1
+      react: 19.0.0
 
   '@types/config@3.3.5': {}
 

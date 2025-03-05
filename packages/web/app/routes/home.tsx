@@ -3,6 +3,9 @@ import type { Route } from "./+types/home";
 import { useLiveQuery } from "@electric-sql/pglite-react";
 import { DB } from "./pg-lite";
 import type { Article } from "./models";
+import { useMutation } from "@tanstack/react-query";
+import { useStream } from "~/stream-provider";
+import { matchStream } from "@electric-sql/experimental";
 
 const QUERY = `SELECT * FROM articles;`;
 
@@ -25,11 +28,18 @@ export default function Home() {
   const defaultItems = useLoaderData<typeof clientLoader>();
   const items = useLiveQuery<Article>(QUERY) ?? defaultItems;
 
-  function createArticle() {
-    return fetch("http://localhost:3001/articles", {
-      method: "POST",
-    });
-  }
+  const stream = useStream("articles");
+  const mutation = useMutation({
+    mutationFn: async () => {
+      await Promise.all([
+        fetch("http://localhost:3001/articles", {
+          method: "POST",
+        }),
+
+        matchStream(stream, ["insert"], () => true),
+      ]);
+    },
+  });
 
   return (
     <div className="grid gap-4">
@@ -42,10 +52,11 @@ export default function Home() {
         ))}
       </ul>
       <button
-        className="px-3 py-2 bg-blue-500 text-white rounded"
-        onClick={createArticle}
+        className="px-3 py-2 bg-blue-500 text-white rounded disabled:bg-gray-500"
+        onClick={() => mutation.mutate()}
+        disabled={mutation.status === "pending"}
       >
-        Create
+        {mutation.status === "pending" ? "Creating..." : "Create"}
       </button>
     </div>
   );

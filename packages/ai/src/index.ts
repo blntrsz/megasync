@@ -1,9 +1,9 @@
-import { Offset, ShapeStream } from "@electric-sql/client";
+import { Message, Row } from "@electric-sql/client";
 import assert from "node:assert";
-import { writeFileSync, readFileSync } from "node:fs";
-import config from "config";
-import postgres from "postgres";
 import pgvector from "pgvector";
+import postgres from "postgres";
+import config from "config";
+import { createStreamListener } from "core/src/index";
 
 const sql = postgres({
   host: config.get("db.host"),
@@ -13,50 +13,25 @@ const sql = postgres({
   database: config.get("db.database"),
 });
 
-const OFFSET_FILE = "offset";
-const HANDLE_FILE = "handle";
-let offset: Offset | undefined = undefined;
-let handle: string | undefined = undefined;
-try {
-  offset = readFileSync(OFFSET_FILE, "utf-8") as Offset;
-  handle = readFileSync(HANDLE_FILE, "utf-8");
-} catch (e) {}
+function handler(table: string) {
+  return async function (values: Message<Row<never>>[]) {
+    sql.begin(async (tx) => {
+      for (const value of values) {
+        if (value.headers.control?.toString() === "up-to-date") {
+          console.log("up-to-date");
+          continue;
+        }
 
-const stream = new ShapeStream({
-  url: `http://localhost:3000/v1/shape`,
-  offset,
-  handle,
-  params: {
-    table: `"article_manager"."articles"`,
-    replica: "full",
-  },
-});
+        assert("value" in value, "value is missing " + JSON.stringify(value));
+        assert("key" in value, "headers is missing");
+        assert("id" in value.value, "id is missing");
 
-stream.subscribe(async (data) => {
-  const values = [...data.values()];
+        const embedding = Array.from({
+          length: 4096,
+        }).fill(0) as number[];
 
-  if (values.length === 1 && values[0].headers.control === "up-to-date") {
-    console.log("up-to-date");
-    return;
-  }
-
-  sql.begin(async (tx) => {
-    for (const value of values) {
-      if (value.headers.control?.toString() === "up-to-date") {
-        console.log("up-to-date");
-        continue;
-      }
-
-      assert("value" in value, "value is missing " + JSON.stringify(value));
-      assert("key" in value, "headers is missing");
-      assert("id" in value.value, "id is missing");
-
-      const embedding = Array.from({
-        length: 4096,
-      }).fill(0) as number[];
-
-      await tx`
-        INSERT INTO "article_manager"."articles" (
+        await tx`
+        INSERT INTO ${sql(table)} (
           id, 
           vector
         ) 
@@ -66,14 +41,24 @@ stream.subscribe(async (data) => {
         )
         ON CONFLICT (id) DO UPDATE SET vector = ${pgvector.toSql(embedding)};
       `;
-    }
-    writeFileSync(OFFSET_FILE, stream.lastOffset);
-    stream.shapeHandle && writeFileSync(HANDLE_FILE, stream.shapeHandle);
+      }
+    });
+  };
+}
 
-    console.log(
-      `Processed ${values.length - 1} rows. New offset: ${
-        stream.lastOffset
-      } in handle: ${stream.shapeHandle}`
-    );
-  });
-}, console.error);
+createStreamListener({
+  table: "relationships.relationships",
+  callback: handler("relationships.relationships"),
+});
+createStreamListener({
+  table: "relationships.domain_objects",
+  callback: handler("relationships.domain_objects"),
+});
+createStreamListener({
+  table: "article_manager.articles",
+  callback: handler("article_manager.articles"),
+});
+createStreamListener({
+  table: "comment_service.comments",
+  callback: handler("comment_service.comments"),
+});

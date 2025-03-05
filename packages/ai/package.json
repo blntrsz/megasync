@@ -5,6 +5,7 @@
     "migrate": "node-pg-migrate"
   },
   "dependencies": {
+    "core": "workspace:*",
     "config": "^3.3.12",
     "node-pg-migrate": "^7.9.1",
     "pgvector": "^0.2.0",

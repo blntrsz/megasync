@@ -23,6 +23,7 @@ app.post("/articles", async (c) => {
       max: 10,
     },
   });
+  await new Promise((resolve) => setTimeout(resolve, 1000));
   const result = await sql`
     INSERT INTO "article_manager"."articles" (name) VALUES (${name});
   `;
@@ -30,6 +31,7 @@ app.post("/articles", async (c) => {
 });
 
 app.post("/comments/with-article-relationship", async (c) => {
+  await new Promise((resolve) => setTimeout(resolve, 1000));
   const id = new URL(c.req.url).searchParams.get("id");
   const name = faker.word.words({
     count: {

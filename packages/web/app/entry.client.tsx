@@ -3,6 +3,8 @@ import { hydrateRoot } from "react-dom/client";
 import { HydratedRouter } from "react-router/dom";
 import { DB } from "./routes/pg-lite";
 import { PGliteProvider } from "@electric-sql/pglite-react";
+import { ShapeStream } from "@electric-sql/client";
+import { StreamProvider } from "./stream-provider";
 
 DB.instance.get().then(async (db) => {
   // Setup the local database schema
@@ -47,6 +49,8 @@ DB.instance.get().then(async (db) => {
     window.db = db;
   }
 
+  const streams: Record<string, ShapeStream> = {};
+
   for (const { table, schema } of [
     {
       table: "articles",
@@ -65,7 +69,7 @@ DB.instance.get().then(async (db) => {
       schema: "relationships",
     },
   ]) {
-    await db.electric.syncShapeToTable({
+    const syncShape = await db.electric.syncShapeToTable({
       table,
       shape: {
         url: `http://localhost:3000/v1/shape`,
@@ -76,15 +80,19 @@ DB.instance.get().then(async (db) => {
       shapeKey: table,
       primaryKey: ["id"],
     });
+
+    streams[table] = syncShape.stream as ShapeStream;
   }
 
   return startTransition(() => {
     hydrateRoot(
       document,
       <StrictMode>
-        <PGliteProvider db={db}>
-          <HydratedRouter />
-        </PGliteProvider>
+        <StreamProvider streams={streams}>
+          <PGliteProvider db={db}>
+            <HydratedRouter />
+          </PGliteProvider>
+        </StreamProvider>
       </StrictMode>
     );
   });

@@ -3,6 +3,9 @@ import { Link, useLoaderData, useParams } from "react-router";
 import { DB } from "./pg-lite";
 import type { ClientLoaderFunctionArgs } from "react-router";
 import type { Article, Comment } from "./models";
+import { useMutation } from "@tanstack/react-query";
+import { useStream } from "~/stream-provider";
+import { matchStream } from "@electric-sql/experimental";
 
 function getArticlesById(id: string) {
   return `SELECT * FROM articles where id = ${id}`;
@@ -62,18 +65,34 @@ export default function ArticleID() {
   const articles =
     useLiveQuery<Article>(getArticlesById(article_id!)) ?? loaderData.articles;
 
-  const comments =
-    useLiveQuery<Comment>(getCommentsByIds(loaderData.commentIds)) ??
-    loaderData.comments;
+  const articleCommentRelationships = useLiveQuery<{
+    nid: string;
+    ntype: string;
+    pid: string;
+  }>(getArticleCommentRelationships(article_id!));
 
-  function addComment() {
-    return fetch(
-      `http://localhost:3001/comments/with-article-relationship?id=${article_id}`,
-      {
-        method: "POST",
-      }
-    );
-  }
+  const commentIds =
+    (articleCommentRelationships?.rows.map((row) =>
+      row.ntype === "comment" ? row.nid : row.pid
+    ) as string[]) ?? loaderData.commentIds;
+
+  const comments =
+    useLiveQuery<Comment>(getCommentsByIds(commentIds)) ?? loaderData.comments;
+
+  const stream = useStream("comments");
+  const mutation = useMutation({
+    mutationFn: async () => {
+      await Promise.all([
+        fetch(
+          `http://localhost:3001/comments/with-article-relationship?id=${article_id}`,
+          {
+            method: "POST",
+          }
+        ),
+        matchStream(stream, ["insert"], () => true),
+      ]);
+    },
+  });
 
   return (
     <div className="grid gap-4">
@@ -90,10 +109,11 @@ export default function ArticleID() {
         })}
       </ul>
       <button
-        className="px-3 py-2 bg-blue-500 text-white rounded"
-        onClick={addComment}
+        className="px-3 py-2 bg-blue-500 text-white rounded disabled:bg-gray-500"
+        onClick={() => mutation.mutate()}
+        disabled={mutation.status === "pending"}
       >
-        Add Comment
+        {mutation.status === "pending" ? "Creating..." : "Add Comment"}
       </button>
     </div>
   );
