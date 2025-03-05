@@ -14,13 +14,17 @@ const sql = postgres({
 
 const OFFSET_FILE = "offset";
 const HANDLE_FILE = "handle";
-const offset = readFileSync(OFFSET_FILE, "utf-8");
-const handle = readFileSync(HANDLE_FILE, "utf-8");
+let offset: Offset | undefined = undefined;
+let handle: string | undefined = undefined;
+try {
+  offset = readFileSync(OFFSET_FILE, "utf-8") as Offset;
+  handle = readFileSync(HANDLE_FILE, "utf-8");
+} catch (e) {}
 
 const stream = new ShapeStream({
   url: `http://localhost:3000/v1/shape`,
-  offset: offset ? (offset as Offset) : undefined,
-  handle: handle ? handle : undefined,
+  offset,
+  handle,
   params: {
     table: `"article_manager"."articles"`,
     replica: "full",

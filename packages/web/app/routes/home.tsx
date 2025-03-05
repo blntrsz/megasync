@@ -1,6 +1,10 @@
-import { Link } from "react-router";
+import { Link, useLoaderData } from "react-router";
 import type { Route } from "./+types/home";
 import { useLiveQuery } from "@electric-sql/pglite-react";
+import { DB } from "./pg-lite";
+import type { Article } from "./models";
+
+const QUERY = `SELECT * FROM articles;`;
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -9,12 +13,17 @@ export function meta({}: Route.MetaArgs) {
   ];
 }
 
-export default function Home() {
-  const items = useLiveQuery.sql<{ id: number; name: string }>`
-    SELECT * FROM articles;
-  `;
+export async function clientLoader() {
+  const db = await DB.instance.get();
 
-  console.log(items);
+  const [result] = await db.exec(QUERY);
+
+  return result as unknown as { rows: Article[] };
+}
+
+export default function Home() {
+  const defaultItems = useLoaderData<typeof clientLoader>();
+  const items = useLiveQuery<Article>(QUERY) ?? defaultItems;
 
   function createArticle() {
     return fetch("http://localhost:3001/articles", {
